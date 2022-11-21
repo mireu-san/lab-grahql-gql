@@ -33,6 +33,13 @@ const resolvers = {
       );
     },
   },
+
+  Mutation: {
+    createUser: (parent, args) => {
+      const user = args.input;
+      console.log(user);
+    },
+  },
 };
 
 module.exports = { resolvers };
