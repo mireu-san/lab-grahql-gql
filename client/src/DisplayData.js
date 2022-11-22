@@ -1,5 +1,5 @@
-import React from "react";
-import { useQuery, gql } from "@apollo/client";
+import React, { useState } from "react";
+import { useQuery, gql, useLazyQuery } from "@apollo/client";
 
 // And here for Apollo, as I did on browser side
 const QUERY_ALL_USERS = gql`
@@ -22,10 +22,27 @@ const QUERY_ALL_MOVIES = gql`
   }
 `;
 
+// caution here : Stop overthinking here
+const GET_MOVIE_BY_NAME = gql`
+  query Movie($name: String!) {
+    movie(name: $name) {
+      name
+      yearOfPublication
+    }
+  }
+`;
+
 function DisplayData() {
+  //   specific data to query it
+  const [movieSearched, setMovieSearched] = useState("");
+
   // useQuery will make request
   const { data, loading, error } = useQuery(QUERY_ALL_USERS);
   const { data: movieData } = useQuery(QUERY_ALL_MOVIES);
+
+  //   specific data to query it
+  const [fetchMovie, { data: movieSearchedData, error: movieError }] =
+    useLazyQuery(GET_MOVIE_BY_NAME);
 
   if (loading) {
     return <h1> 데이터가 로드 중 입니다. 메시지 출력중...</h1>;
@@ -65,6 +82,38 @@ function DisplayData() {
         movieData.movies.map((movie) => {
           return <h1>이름: {movie.name}</h1>;
         })}
+
+      {/* query specific single data only */}
+      <div>
+        <input
+          type="text"
+          placeholder="Interstellar"
+          onChange={(event) => {
+            setMovieSearched(event.target.value);
+          }}
+        />
+        <button
+          // this is bit tricky! - part of querying specific single data
+          onClick={() => {
+            fetchMovie({
+              variables: {
+                name: movieSearched,
+              },
+            });
+          }}
+        >
+          Fetch Data
+        </button>
+        <div>
+          {movieSearchedData && (
+            <div>
+              <h1>영화이름: {movieSearchedData.movie.name}</h1>
+              <h1>영화년도: {movieSearchedData.movie.yearOfPublication}</h1>
+            </div>
+          )}
+          {movieError && <h1> Error occurred : unable to fetch the data</h1>}
+        </div>
+      </div>
     </div>
   );
 }
