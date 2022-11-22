@@ -9,8 +9,8 @@ const resolvers = {
     },
     user: (parent, args) => {
       const id = args.id;
-      // .find(what do u want to find out, { key })
-      // : Number(id) -> only did this to convert string to number.
+      // .find(what do I want to find out, { key })
+      // : Number(id) -> be sure to let it convert whatever passing value as Number
       const user = _.find(UserList, { id: Number(id) });
       return user;
     },
