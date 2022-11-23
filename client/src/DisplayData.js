@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useQuery, gql, useLazyQuery } from "@apollo/client";
+import { useQuery, gql, useLazyQuery, useMutation } from "@apollo/client";
 
 // And here for Apollo, as I did on browser side
 const QUERY_ALL_USERS = gql`
@@ -32,36 +32,95 @@ const GET_MOVIE_BY_NAME = gql`
   }
 `;
 
+const CREATE_USER_MUTATION = gql`
+  mutation CreateUser($input: CreateUserInput!) {
+    createUser(input: $input) {
+      name
+      id
+    }
+  }
+`;
+
 function DisplayData() {
   //   specific data to query it
   const [movieSearched, setMovieSearched] = useState("");
 
+  // Create User States
+  const [name, setName] = useState("");
+  const [username, setUsername] = useState("");
+  const [age, setAge] = useState(0);
+  const [nationality, setNationality] = useState("");
+
   // useQuery will make request
-  const { data, loading, error } = useQuery(QUERY_ALL_USERS);
+  const { data, loading, refetch } = useQuery(QUERY_ALL_USERS);
   const { data: movieData } = useQuery(QUERY_ALL_MOVIES);
 
-  //   specific data to query it
+  //   to query specific data
   const [fetchMovie, { data: movieSearchedData, error: movieError }] =
     useLazyQuery(GET_MOVIE_BY_NAME);
+
+  const [createUser] = useMutation(CREATE_USER_MUTATION);
 
   if (loading) {
     return <h1> 데이터가 로드 중 입니다. 메시지 출력중...</h1>;
   }
 
-  if (data) {
-    console.log(data);
-  }
+  // if (data) {
+  //   console.log(data);
+  // }
 
-  if (error) {
-    console.log(error);
-  }
-
-  if (data) {
-    console.log(data);
-  }
+  // if (error) {
+  //   console.log(error);
+  // }
 
   return (
     <div>
+      <div>
+        <input
+          type="text"
+          placeholder="Name..."
+          onChange={(event) => {
+            setName(event.target.value);
+          }}
+        />
+        <input
+          type="text"
+          placeholder="Username..."
+          onChange={(event) => {
+            setUsername(event.target.value);
+          }}
+        />
+        <input
+          type="number"
+          placeholder="Age..."
+          onChange={(event) => {
+            setAge(event.target.value);
+          }}
+        />
+        <input
+          type="text"
+          placeholder="Nationality..."
+          onChange={(event) => {
+            // setNationality(event.target.value);
+            // .toUpperCase = due to type-defs's data values = capital letter (remember, client will input value)
+            setNationality(event.target.value.toUpperCase());
+          }}
+        />
+        <button
+          onClick={() => {
+            createUser({
+              // note, key : value, but in object in JS, { input: { name: name } }, can be input as below
+              variables: {
+                input: { name, username, age: Number(age), nationality },
+              },
+            });
+            // to fetch - create user, client side
+            refetch();
+          }}
+        >
+          Create User
+        </button>
+      </div>
       {/* Users */}
       {/* if data is available, then map the data */}
       {data &&
